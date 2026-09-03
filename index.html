@@ -276,77 +276,277 @@
   </div>
 
 <script>
-  const ALERT_API = "https://ubilling.net.ua/aerialalerts/?source=skog&raw";
+const API_URL = "https://ubilling.net.ua/aerialalerts/?source=skog&raw";
+const DISTRICT_NAME = "Бориспільський район";
 
-  const trainings = [
-    {
-      dayNumber: 2,
-      day: "Вівторок",
-      time: "19:30 – 20:45",
-      hour: 19,
-      minute: 30,
-      place: "Ліцей «Перспектива», Київський шлях, 97",
-      map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Перспектива,+Київський+шлях+97,+Бориспіль"
-    },
-    {
-      dayNumber: 3,
-      day: "Середа",
-      time: "19:35 – 20:50",
-      hour: 19,
-      minute: 35,
-      place: "Ліцей П. Чубинського, Головатого, 32-А",
-      map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Павла+Чубинського,+Головатого+32-А,+Бориспіль"
-    },
-    {
-      dayNumber: 5,
-      day: "П’ятниця",
-      time: "19:35 – 20:50",
-      hour: 19,
-      minute: 35,
-      place: "Ліцей П. Чубинського, Головатого, 32-А",
-      map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Павла+Чубинського,+Головатого+32-А,+Бориспіль"
-    }
-  ];
+const trainings = [
+  {
+    dayNumber: 2,
+    day: "Вівторок",
+    time: "19:30 – 20:45",
+    hour: 19,
+    minute: 30,
+    place: "Ліцей «Перспектива», Київський шлях, 97",
+    map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Перспектива,+Київський+шлях+97,+Бориспіль"
+  },
+  {
+    dayNumber: 3,
+    day: "Середа",
+    time: "19:35 – 20:50",
+    hour: 19,
+    minute: 35,
+    place: "Ліцей П. Чубинського, Головатого, 32-А",
+    map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Павла+Чубинського,+Головатого+32-А,+Бориспіль"
+  },
+  {
+    dayNumber: 5,
+    day: "П’ятниця",
+    time: "19:35 – 20:50",
+    hour: 19,
+    minute: 35,
+    place: "Ліцей П. Чубинського, Головатого, 32-А",
+    map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Павла+Чубинського,+Головатого+32-А,+Бориспіль"
+  }
+];
 
-  function getNextTraining() {
-    const now = new Date();
+function getNextTraining() {
+  const now = new Date();
 
-    for (let addDays = 0; addDays < 8; addDays++) {
-      const date = new Date(now);
-      date.setDate(now.getDate() + addDays);
+  for (let addDays = 0; addDays < 8; addDays++) {
+    const date = new Date(now);
+    date.setDate(now.getDate() + addDays);
 
-      for (const training of trainings) {
-        if (date.getDay() === training.dayNumber) {
-          const start = new Date(date);
-          start.setHours(training.hour, training.minute, 0, 0);
+    for (const training of trainings) {
+      if (date.getDay() === training.dayNumber) {
+        const start = new Date(date);
+        start.setHours(training.hour, training.minute, 0, 0);
 
-          if (start > now) {
-            return { ...training, start };
-          }
+        if (start > now) {
+          return { ...training, start };
         }
       }
     }
   }
+}
 
-  function updateTrainingCard() {
-    const next = getNextTraining();
-    if (!next) return;
+function getTodayTraining() {
+  const now = new Date();
 
-    document.getElementById("nextDay").textContent = next.day;
-    document.getElementById("nextTime").textContent = next.time;
-    document.getElementById("nextPlace").textContent = next.place;
-    document.getElementById("routeLink").href = next.map;
+  return trainings.find(training => {
+    return now.getDay() === training.dayNumber;
+  });
+}
 
-    const diff = next.start - new Date();
-    const days = Math.floor(diff / 86400000);
-    const hours = Math.floor((diff % 86400000) / 3600000);
-    const minutes = Math.floor((diff % 3600000) / 60000);
-    const seconds = Math.floor((diff % 60000) / 1000);
+function updateTrainingCard() {
+  const next = getNextTraining();
+  if (!next) return;
 
-    document.getElementById("countdown").textContent =
-      (days > 0 ? days + " дн. " : "") +
-      String(hours).padStart(2, "0") + ":" +
-      String(minutes).padStart(2, "0") + ":" +
-      String(seconds).padStart(2,
+  document.getElementById("nextDay").textContent = next.day;
+  document.getElementById("nextTime").textContent = next.time;
+  document.getElementById("nextPlace").textContent = next.place;
+  document.getElementById("routeLink").href = next.map;
+
+  const diff = next.start - new Date();
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+  const seconds = Math.floor((diff % 60000) / 1000);
+
+  document.getElementById("countdown").textContent =
+    (days > 0 ? days + " дн. " : "") +
+    String(hours).padStart(2, "0") + ":" +
+    String(minutes).padStart(2, "0") + ":" +
+    String(seconds).padStart(2, "0");
+}
+
+function formatAlertTime(value) {
+  if (!value || value.startsWith("1970")) return "час невідомий";
+
+  const date = new Date(value.replace(" ", "T"));
+
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleString("uk-UA", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function getCurrentTrainingState() {
+  const training = getTodayTraining();
+  if (!training) return null;
+
+  const now = new Date();
+  const start = new Date();
+  start.setHours(training.hour, training.minute, 0, 0);
+
+  const thirtyMinutesAfterStart = new Date(start.getTime() + 30 * 60 * 1000);
+
+  return {
+    training,
+    start,
+    thirtyMinutesAfterStart,
+    isAfterStart: now >= start,
+    isCancelled: now >= thirtyMinutesAfterStart
+  };
+}
+
+function showAlarmCard({ active, changed }) {
+  const card = document.querySelector(".alarm");
+  if (!card) return;
+
+  const trainingState = getCurrentTrainingState();
+  let icon = "🟢";
+  let title = "Тривоги немає — тренування за розкладом";
+  let text = "У Бориспільському районі повітряна тривога зараз не активна.";
+  let background = "#e8f8f1";
+  let border = "#9edbbf";
+  let titleColor = "#11865b";
+  let textColor = "#176244";
+
+  if (active) {
+    icon = "🔴";
+    title = "Повітряна тривога в Бориспільському районі";
+    text = `Тривога активна. Остання зміна статусу: ${formatAlertTime(changed)}.`;
+
+    background = "#ffebed";
+    border = "#f0a9b0";
+    titleColor = "#bf2935";
+    textColor = "#84232c";
+
+    if (trainingState && trainingState.isAfterStart && !trainingState.isCancelled) {
+      const now = new Date();
+      const left = trainingState.thirtyMinutesAfterStart - now;
+      const minutes = Math.ceil(left / 60000);
+
+      icon = "🟡";
+      title = `Чекаємо відбій — залишилось приблизно ${minutes} хв.`;
+      text = "На час початку тренування активна тривога. Чекаємо до 30 хвилин після початку.";
+      background = "#fff5d9";
+      border = "#f1d787";
+      titleColor = "#a86500";
+      textColor = "#674800";
+    }
+
+    if (trainingState && trainingState.isCancelled) {
+      icon = "⚫";
+      title = "Тренування сьогодні не відбудеться";
+      text = "Минуло 30 хвилин від початку тренування, а повітряна тривога досі активна.";
+      background = "#f0f1f3";
+      border = "#c8cbd1";
+      titleColor = "#30343b";
+      textColor = "#4c535d";
+    }
+  }
+
+  card.style.background = background;
+  card.style.borderColor = border;
+
+  card.innerHTML = `
+    <div class="alarm-top">
+      <div class="alarm-icon">${icon}</div>
+      <div>
+        <div class="label" style="margin:0 0 3px;color:${titleColor}">
+          БОРИСПІЛЬСЬКИЙ РАЙОН
+        </div>
+        <div class="alarm-title" style="color:${titleColor}">${title}</div>
+      </div>
+    </div>
+
+    <p class="alarm-text" style="color:${textColor}">${text}</p>
+
+    <div class="rule" style="color:${textColor}">
+      <strong>Правило команди:</strong> якщо на початок заняття є повітряна тривога,
+      чекаємо відбою 30 хвилин. Якщо відбою немає — тренування не відбудеться.
+    </div>
+
+    <a class="button" style="background:${titleColor}"
+       href="https://map.ukrainealarm.com/"
+       target="_blank" rel="noopener">
+      Перевірити карту тривог
+    </a>
+
+    <div class="online-note">
+      <span class="dot" style="background:${active ? "#e4333e" : "#18a66b"}"></span>
+      Дані: ubilling.net.ua · оновлюються щохвилини
+    </div>
+  `;
+}
+
+async function updateAlarmStatus() {
+  try {
+    const response = await fetch(API_URL, {
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      throw new Error("API недоступне");
+    }
+
+    const data = await response.json();
+
+    let district = null;
+
+    for (const region of data) {
+      if (region.districts) {
+        district = region.districts.find(
+          item => item.name === DISTRICT_NAME
+        );
+
+        if (district) break;
+      }
+    }
+
+    if (!district) {
+      throw new Error("Бориспільський район не знайдено");
+    }
+
+    showAlarmCard({
+      active: district.alert === true,
+      changed: district.changed
+    });
+  } catch (error) {
+    console.error(error);
+
+    const card = document.querySelector(".alarm");
+    if (!card) return;
+
+    card.style.background = "#fff5d9";
+    card.style.borderColor = "#f1d787";
+
+    card.innerHTML = `
+      <div class="alarm-top">
+        <div class="alarm-icon">⚠️</div>
+        <div>
+          <div class="label" style="margin:0 0 3px;color:#a86500">
+            БОРИСПІЛЬСЬКИЙ РАЙОН
+          </div>
+          <div class="alarm-title" style="color:#a86500">
+            Не вдалося оновити статус тривоги
+          </div>
+        </div>
+      </div>
+
+      <p class="alarm-text" style="color:#674800">
+        Перевірте офіційну карту тривог. Автоматична перевірка повториться за хвилину.
+      </p>
+
+      <a class="button" style="background:#a86500"
+         href="https://map.ukrainealarm.com/"
+         target="_blank" rel="noopener">
+        Перевірити карту тривог
+      </a>
+    `;
+  }
+}
+
+updateTrainingCard();
+updateAlarmStatus();
+
+setInterval(updateTrainingCard, 1000);
+setInterval(updateAlarmStatus, 60000);
+</script>
 </body>
 </html>
