@@ -54,16 +54,19 @@
       gap: 13px;
     }
 
-    .ball {
-      display: grid;
-      width: 48px;
-      height: 48px;
-      place-items: center;
-      border: 2px solid rgba(255,255,255,.55);
-      border-radius: 50%;
-      font-size: 25px;
-      background: rgba(255,255,255,.12);
-    }
+    .team-logo {
+  display: block;
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  object-fit: contain;
+  padding: 3px;
+  background: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+    
 
     h1 { margin: 0; font-size: 23px; line-height: 1.2; }
     .subtitle { margin: 4px 0 0; color: #cbdcf9; font-size: 14px; }
@@ -184,7 +187,13 @@
   <div class="app">
     <header>
       <div class="team">
-        <div class="ball">⚽</div>
+        <img
+  class="team-logo"
+  src="./logo.png"
+  alt="Логотип ФК Фаворит Бориспіль"
+  width="64"
+  height="64"
+>
         <div>
           <h1>Фаворит 2016 — Тренування</h1>
           <p class="subtitle">Розклад, таймер та безпека команди</p>
