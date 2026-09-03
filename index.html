@@ -209,31 +209,36 @@
         </a>
       </section>
 
-      <section class="card alarm">
-        <div class="alarm-top">
-          <div class="alarm-icon">⚠️</div>
-          <div>
-            <div class="label" style="color:#9a6500;margin:0 0 3px">Бориспіль / Київська область</div>
-            <div class="alarm-title">Статус тривоги перевіряється</div>
-          </div>
-        </div>
+<section class="card alarm" id="alarmCard">
+  <div class="alarm-top">
+    <div class="alarm-icon" id="alarmIcon">⏳</div>
+    <div>
+      <div class="label" style="color:#9a6500;margin:0 0 3px">
+        БОРИСПІЛЬСЬКИЙ РАЙОН
+      </div>
+      <div class="alarm-title" id="alarmTitle">Перевіряємо статус тривоги…</div>
+    </div>
+  </div>
 
-        <p class="alarm-text">
-          Для автоматичного відображення повітряних тривог потрібно підключити перевірене джерело даних.
-          Перед виїздом обов’язково перевіряйте офіційні повідомлення.
-        </p>
+  <p class="alarm-text" id="alarmText">
+    Отримуємо актуальні дані.
+  </p>
 
-        <div class="rule">
-          <strong>Правило тренування:</strong> якщо на початок заняття є повітряна тривога,
-          чекаємо відбою 30 хвилин. Якщо відбою немає — тренування не відбудеться.
-        </div>
+  <div class="rule" id="trainingRule">
+    <strong>Правило тренування:</strong> якщо на початок заняття є повітряна тривога,
+    чекаємо відбою 30 хвилин. Якщо відбою немає — тренування не відбудеться.
+  </div>
 
-        <a class="button" style="background:#9b6500" href="https://map.ukrainealarm.com/" target="_blank" rel="noopener">
-          Перевірити карту тривог
-        </a>
+  <a class="button" id="alarmMapLink" style="background:#9b6500"
+     href="https://map.ukrainealarm.com/" target="_blank" rel="noopener">
+    Перевірити карту тривог
+  </a>
 
-        <div class="online-note"><span class="dot"></span> Автоматичне джерело тривог буде підключено окремо</div>
-      </section>
+  <div class="online-note">
+    <span class="dot" id="alarmDot"></span>
+    <span id="alarmUpdated">Оновлення даних…</span>
+  </div>
+</section>
 
       <section class="card">
         <h2 class="section-title">📅 Розклад</h2>
@@ -271,80 +276,77 @@
   </div>
 
 <script>
-const trainings = [
-  {
-    dayNumber: 2,
-    day: "Вівторок",
-    time: "19:30 – 20:45",
-    hour: 19,
-    minute: 30,
-    place: "Ліцей «Перспектива», Київський шлях, 97",
-    map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Перспектива,+Київський+шлях+97,+Бориспіль"
-  },
-  {
-    dayNumber: 3,
-    day: "Середа",
-    time: "19:35 – 20:50",
-    hour: 19,
-    minute: 35,
-    place: "Ліцей П. Чубинського, Головатого, 32-А",
-    map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Павла+Чубинського,+Головатого+32-А,+Бориспіль"
-  },
-  {
-    dayNumber: 5,
-    day: "П’ятниця",
-    time: "19:35 – 20:50",
-    hour: 19,
-    minute: 35,
-    place: "Ліцей П. Чубинського, Головатого, 32-А",
-    map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Павла+Чубинського,+Головатого+32-А,+Бориспіль"
-  }
-];
+  const ALERT_API = "https://ubilling.net.ua/aerialalerts/?source=skog&raw";
 
-function getNextTraining() {
-  const now = new Date();
+  const trainings = [
+    {
+      dayNumber: 2,
+      day: "Вівторок",
+      time: "19:30 – 20:45",
+      hour: 19,
+      minute: 30,
+      place: "Ліцей «Перспектива», Київський шлях, 97",
+      map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Перспектива,+Київський+шлях+97,+Бориспіль"
+    },
+    {
+      dayNumber: 3,
+      day: "Середа",
+      time: "19:35 – 20:50",
+      hour: 19,
+      minute: 35,
+      place: "Ліцей П. Чубинського, Головатого, 32-А",
+      map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Павла+Чубинського,+Головатого+32-А,+Бориспіль"
+    },
+    {
+      dayNumber: 5,
+      day: "П’ятниця",
+      time: "19:35 – 20:50",
+      hour: 19,
+      minute: 35,
+      place: "Ліцей П. Чубинського, Головатого, 32-А",
+      map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Павла+Чубинського,+Головатого+32-А,+Бориспіль"
+    }
+  ];
 
-  for (let addDays = 0; addDays < 8; addDays++) {
-    const date = new Date(now);
-    date.setDate(now.getDate() + addDays);
+  function getNextTraining() {
+    const now = new Date();
 
-    for (const training of trainings) {
-      if (date.getDay() === training.dayNumber) {
-        const start = new Date(date);
-        start.setHours(training.hour, training.minute, 0, 0);
+    for (let addDays = 0; addDays < 8; addDays++) {
+      const date = new Date(now);
+      date.setDate(now.getDate() + addDays);
 
-        if (start > now) {
-          return { ...training, start };
+      for (const training of trainings) {
+        if (date.getDay() === training.dayNumber) {
+          const start = new Date(date);
+          start.setHours(training.hour, training.minute, 0, 0);
+
+          if (start > now) {
+            return { ...training, start };
+          }
         }
       }
     }
   }
-}
 
-function updateApp() {
-  const next = getNextTraining();
-  if (!next) return;
+  function updateTrainingCard() {
+    const next = getNextTraining();
+    if (!next) return;
 
-  document.getElementById("nextDay").textContent = next.day;
-  document.getElementById("nextTime").textContent = next.time;
-  document.getElementById("nextPlace").textContent = next.place;
-  document.getElementById("routeLink").href = next.map;
+    document.getElementById("nextDay").textContent = next.day;
+    document.getElementById("nextTime").textContent = next.time;
+    document.getElementById("nextPlace").textContent = next.place;
+    document.getElementById("routeLink").href = next.map;
 
-  const diff = next.start - new Date();
-  const days = Math.floor(diff / 86400000);
-  const hours = Math.floor((diff % 86400000) / 3600000);
-  const minutes = Math.floor((diff % 3600000) / 60000);
-  const seconds = Math.floor((diff % 60000) / 1000);
+    const diff = next.start - new Date();
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
 
-  document.getElementById("countdown").textContent =
-    (days > 0 ? days + " дн. " : "") +
-    String(hours).padStart(2, "0") + ":" +
-    String(minutes).padStart(2, "0") + ":" +
-    String(seconds).padStart(2, "0");
-}
-
-updateApp();
-setInterval(updateApp, 1000);
-</script>
+    document.getElementById("countdown").textContent =
+      (days > 0 ? days + " дн. " : "") +
+      String(hours).padStart(2, "0") + ":" +
+      String(minutes).padStart(2, "0") + ":" +
+      String(seconds).padStart(2,
 </body>
 </html>
