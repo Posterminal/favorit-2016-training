@@ -276,7 +276,7 @@
   </div>
 
 <script>
-const API_URL = "https://ubilling.net.ua/aerialalerts/?source=skog&raw";
+const API_URL = "https://favorit-alerts.lelyakow.workers.dev/";
 const DISTRICT_NAME = "Бориспільський район";
 
 const trainings = [
@@ -482,47 +482,22 @@ async function updateAlarmStatus() {
     });
 
     if (!response.ok) {
-      throw new Error("API тимчасово недоступне: " + response.status);
+      throw new Error("HTTP " + response.status);
     }
 
-    const payload = await response.json();
+    const data = await response.json();
 
-    /*
-      API з параметром raw зазвичай повертає дані
-      у властивості raw. Залишаємо також перевірку
-      на випадок, якщо API поверне масив напряму.
-    */
-    const regions = Array.isArray(payload)
-      ? payload
-      : (payload.raw || []);
-
-    if (!Array.isArray(regions)) {
-      throw new Error("Невідомий формат даних API");
-    }
-
-    let district = null;
-
-    for (const region of regions) {
-      if (!region.districts || !Array.isArray(region.districts)) {
-        continue;
-      }
-
-      district = region.districts.find(
-        item => item.name === DISTRICT_NAME
-      );
-
-      if (district) break;
-    }
-
-    if (!district) {
-      throw new Error("Бориспільський район не знайдено в даних API");
+    if (
+      data.district !== DISTRICT_NAME ||
+      typeof data.alert !== "boolean"
+    ) {
+      throw new Error("Некоректна відповідь API");
     }
 
     showAlarmCard({
-      active: district.alert === true,
-      changed: district.changed
+      active: data.alert,
+      changed: data.changed
     });
-
   } catch (error) {
     console.error("Помилка перевірки тривоги:", error);
 
@@ -546,14 +521,21 @@ async function updateAlarmStatus() {
       </div>
 
       <p class="alarm-text" style="color:#674800">
-        Тимчасово немає зв’язку з джерелом даних. Перед виїздом перевірте офіційні повідомлення та карту тривог.
+        Статус невідомий. Перед виїздом обов’язково перевірте
+        офіційні джерела.
       </p>
 
-      <a class="button" style="background:#a86500"
+      <a class="button"
+         style="background:#a86500"
          href="https://map.ukrainealarm.com/"
-         target="_blank" rel="noopener">
-        Перевірити карту тривог
+         target="_blank"
+         rel="noopener">
+        Перевірити офіційну карту
       </a>
+
+      <div class="online-note">
+        Автоматична перевірка повториться за хвилину
+      </div>
     `;
   }
 }
