@@ -482,33 +482,49 @@ async function updateAlarmStatus() {
     });
 
     if (!response.ok) {
-      throw new Error("API недоступне");
+      throw new Error("API тимчасово недоступне: " + response.status);
     }
 
-    const data = await response.json();
+    const payload = await response.json();
+
+    /*
+      API з параметром raw зазвичай повертає дані
+      у властивості raw. Залишаємо також перевірку
+      на випадок, якщо API поверне масив напряму.
+    */
+    const regions = Array.isArray(payload)
+      ? payload
+      : (payload.raw || []);
+
+    if (!Array.isArray(regions)) {
+      throw new Error("Невідомий формат даних API");
+    }
 
     let district = null;
 
-    for (const region of data) {
-      if (region.districts) {
-        district = region.districts.find(
-          item => item.name === DISTRICT_NAME
-        );
-
-        if (district) break;
+    for (const region of regions) {
+      if (!region.districts || !Array.isArray(region.districts)) {
+        continue;
       }
+
+      district = region.districts.find(
+        item => item.name === DISTRICT_NAME
+      );
+
+      if (district) break;
     }
 
     if (!district) {
-      throw new Error("Бориспільський район не знайдено");
+      throw new Error("Бориспільський район не знайдено в даних API");
     }
 
     showAlarmCard({
       active: district.alert === true,
       changed: district.changed
     });
+
   } catch (error) {
-    console.error(error);
+    console.error("Помилка перевірки тривоги:", error);
 
     const card = document.querySelector(".alarm");
     if (!card) return;
@@ -530,7 +546,7 @@ async function updateAlarmStatus() {
       </div>
 
       <p class="alarm-text" style="color:#674800">
-        Перевірте офіційну карту тривог. Автоматична перевірка повториться за хвилину.
+        Тимчасово немає зв’язку з джерелом даних. Перед виїздом перевірте офіційні повідомлення та карту тривог.
       </p>
 
       <a class="button" style="background:#a86500"
