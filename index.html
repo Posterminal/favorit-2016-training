@@ -270,80 +270,81 @@
     </footer>
   </div>
 
-  <script>
-  const trainings = [
-    {
-      dayNumber: 2,
-      day: "Вівторок",
-      time: "19:30 – 20:45",
-      hour: 19,
-      minute: 30,
-      place: "Ліцей «Перспектива», Київський шлях, 97",
-      map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Перспектива,+Київський+шлях+97,+Бориспіль"
-    },
-    {
-      dayNumber: 3,
-      day: "Середа",
-      time: "19:35 – 20:50",
-      hour: 19,
-      minute: 35,
-      place: "Ліцей П. Чубинського, Головатого, 32-А",
-      map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Павла+Чубинського,+Головатого+32-А,+Бориспіль"
-    },
-    {
-      dayNumber: 5,
-      day: "П’ятниця",
-      time: "19:35 – 20:50",
-      hour: 19,
-      minute: 35,
-      place: "Ліцей П. Чубинського, Головатого, 32-А",
-      map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Павла+Чубинського,+Головатого+32-А,+Бориспіль"
-    }
-  ];
+<script>
+const trainings = [
+  {
+    dayNumber: 2,
+    day: "Вівторок",
+    time: "19:30 – 20:45",
+    hour: 19,
+    minute: 30,
+    place: "Ліцей «Перспектива», Київський шлях, 97",
+    map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Перспектива,+Київський+шлях+97,+Бориспіль"
+  },
+  {
+    dayNumber: 3,
+    day: "Середа",
+    time: "19:35 – 20:50",
+    hour: 19,
+    minute: 35,
+    place: "Ліцей П. Чубинського, Головатого, 32-А",
+    map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Павла+Чубинського,+Головатого+32-А,+Бориспіль"
+  },
+  {
+    dayNumber: 5,
+    day: "П’ятниця",
+    time: "19:35 – 20:50",
+    hour: 19,
+    minute: 35,
+    place: "Ліцей П. Чубинського, Головатого, 32-А",
+    map: "https://www.google.com/maps/search/?api=1&query=Ліцей+Павла+Чубинського,+Головатого+32-А,+Бориспіль"
+  }
+];
 
-  function getNextTraining() {
-    const now = new Date();
-    let closest = null;
+function getNextTraining() {
+  const now = new Date();
 
-    for (let plusDays = 0; plusDays < 8; plusDays++) {
-      const date = new Date(now);
-      date.setDate(now.getDate() + plusDays);
+  for (let addDays = 0; addDays < 8; addDays++) {
+    const date = new Date(now);
+    date.setDate(now.getDate() + addDays);
 
-      for (const training of trainings) {
-        if (date.getDay() === training.dayNumber) {
-          const start = new Date(date);
-          start.setHours(training.hour, training.minute, 0, 0);
+    for (const training of trainings) {
+      if (date.getDay() === training.dayNumber) {
+        const start = new Date(date);
+        start.setHours(training.hour, training.minute, 0, 0);
 
-          if (start > now && (!closest || start < closest.start)) {
-            closest = { ...training, start };
-          }
+        if (start > now) {
+          return { ...training, start };
         }
       }
     }
-    return closest;
   }
+}
 
-  function updateApp() {
-    const next = getNextTraining();
-    if (!next) return;
+function updateApp() {
+  const next = getNextTraining();
+  if (!next) return;
 
-    document.getElementById("nextDay").textContent = next.day;
-    document.getElementById("nextTime").textContent = next.time;
-    document.getElementById("nextPlace").textContent = next.place;
-    document.getElementById("routeLink").href = next.map;
+  document.getElementById("nextDay").textContent = next.day;
+  document.getElementById("nextTime").textContent = next.time;
+  document.getElementById("nextPlace").textContent = next.place;
+  document.getElementById("routeLink").href = next.map;
 
-    const diff = Math.max(0, next.start - new Date());
-    const days = Math.floor(diff / 86400000);
-    const hours = Math.floor((diff % 86400000) / 3600000);
-    const minutes = Math.floor((diff % 3600000) / 60000);
-    const seconds = Math.floor((diff % 60000) / 1000);
+  const diff = next.start - new Date();
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+  const seconds = Math.floor((diff % 60000) / 1000);
 
-    document.getElementById("countdown").textContent =
-      `${days > 0 ? days + " дн. " : ""}${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-  }
+  document.getElementById("countdown").textContent =
+    (days > 0 ? days + " дн. " : "") +
+    String(hours).padStart(2, "0") + ":" +
+    String(minutes).padStart(2, "0") + ":" +
+    String(seconds).padStart(2, "0");
+}
 
-  updateApp();
-  setInterval(updateApp, 1000);
+updateApp();
+setInterval(updateApp, 1000);
 </script>
 </body>
 </html>
