@@ -285,8 +285,9 @@
   </div>
 
 <script>
-const API_URL = "https://favorit-alerts.lelyakow.workers.dev/";
+const API_URL = "https://neptun.in.ua/api/v1/alerts";
 const DISTRICT_NAME = "Бориспільський район";
+const OBLAST_NAME = "Київська область";
 
 const trainings = [
   {
@@ -453,99 +454,40 @@ function showAlarmCard({ active, changed }) {
   card.style.background = background;
   card.style.borderColor = border;
 
-  card.innerHTML = `
-    <div class="alarm-top">
-      <div class="alarm-icon">${icon}</div>
-      <div>
-        <div class="label" style="margin:0 0 3px;color:${titleColor}">
-          БОРИСПІЛЬСЬКИЙ РАЙОН
-        </div>
-        <div class="alarm-title" style="color:${titleColor}">${title}</div>
-      </div>
-    </div>
-
-    <p class="alarm-text" style="color:${textColor}">${text}</p>
-
-    <div class="rule" style="color:${textColor}">
-      <strong>Правило команди:</strong> якщо на початок заняття є повітряна тривога,
-      чекаємо відбою 30 хвилин. Якщо відбою немає — тренування не відбудеться.
-    </div>
-
-    <a class="button" style="background:${titleColor}"
-       href="https://map.ukrainealarm.com/"
-       target="_blank" rel="noopener">
-      Перевірити карту тривог
-    </a>
-
-    <div class="online-note">
-      <span class="dot" style="background:${active ? "#e4333e" : "#18a66b"}"></span>
-      Дані: ubilling.net.ua · оновлюються щохвилини
-    </div>
-  `;
-}
-
+<div class="online-note">
 async function updateAlarmStatus() {
   try {
     const response = await fetch(API_URL, {
-      cache: "no-store"
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        "Accept": "application/json"
+      }
     });
 
     if (!response.ok) {
-      throw new Error("HTTP " + response.status);
+      throw new Error("NEPTUN повернув HTTP " + response.status);
     }
 
     const data = await response.json();
 
-    if (
-      data.district !== DISTRICT_NAME ||
-      typeof data.alert !== "boolean"
-    ) {
-      throw new Error("Некоректна відповідь API");
+    if (!Array.isArray(data.raions)) {
+      throw new Error("Некоректний формат відповіді NEPTUN");
     }
 
+    const boryspilAlert = data.raions.find(item =>
+      item.name === DISTRICT_NAME &&
+      item.oblast === OBLAST_NAME
+    );
+
     showAlarmCard({
-      active: data.alert,
-      changed: data.changed
+      active: Boolean(boryspilAlert),
+      changed: boryspilAlert?.since || null
     });
+
   } catch (error) {
-    console.error("Помилка перевірки тривоги:", error);
-
-    const card = document.querySelector(".alarm");
-    if (!card) return;
-
-    card.style.background = "#fff5d9";
-    card.style.borderColor = "#f1d787";
-
-    card.innerHTML = `
-      <div class="alarm-top">
-        <div class="alarm-icon">⚠️</div>
-        <div>
-          <div class="label" style="margin:0 0 3px;color:#a86500">
-            БОРИСПІЛЬСЬКИЙ РАЙОН
-          </div>
-          <div class="alarm-title" style="color:#a86500">
-            Не вдалося оновити статус тривоги
-          </div>
-        </div>
-      </div>
-
-      <p class="alarm-text" style="color:#674800">
-        Статус невідомий. Перед виїздом обов’язково перевірте
-        офіційні джерела.
-      </p>
-
-      <a class="button"
-         style="background:#a86500"
-         href="https://map.ukrainealarm.com/"
-         target="_blank"
-         rel="noopener">
-        Перевірити офіційну карту
-      </a>
-
-      <div class="online-note">
-        Автоматична перевірка повториться за хвилину
-      </div>
-    `;
+    console.error("Помилка NEPTUN API:", error);
+    showAlarmError();
   }
 }
 
